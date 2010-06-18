@@ -1,10 +1,5 @@
 from iniparse import INIConfig
-with open('canonic.ini') as fin:
-    #fin.readline()
-    cfg = INIConfig(fin)
-    a = cfg['Hotlist.alignment']
-    print a['Collapse']
-    a['Collapse']=123
-    with open('res.ini', 'wt') as fout:
-        print >>fout, cfg
+cfg = INIConfig('canonic.ini')
+a = cfg.Application.GestureDown = 'New browser window'
+print >>open('res.ini', 'wt'), cfg
 
