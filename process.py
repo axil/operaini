@@ -1,13 +1,15 @@
-import re
+import re, os
 from iniparse import INIConfig
+from copy import deepcopy
+
+KEY = '____________________________'
 
 def canonize(filename):
     FIN = filename
     FOUT = 'canonic.ini'
 
-    KEY = '____________________________'
     with open(FOUT, 'wt') as fout:
-        fout.write('[____________]\n')
+        fout.write('[' + KEY + ']\n')
         for line in open(FIN):
             if ( re.match('\[[^]]+\]\s*$', line) or
                 re.match('\s*$', line) or
@@ -15,32 +17,81 @@ def canonize(filename):
                 '=' in line):
                 fout.write(line)
             else:
-                fout.write(line.strip() + '="'+ KEY +'"\n')
+                fout.write(line.strip() + ' = "'+ KEY +'"\n')
 
 def decanonize(filename):
-    KEY = '____________________________'
+    os.rename(filename, filename+'.bak')
     with open('canonic-res.ini') as fin:
         with open(filename, 'wt') as fout:
             fin.readline()
             for line in fin:
-                fout.write(re.sub('="%s"$' % KEY, '', line))
+                fout.write(re.sub(' = "%s"$' % KEY, '', line))
 
 def process_mouse():
-    canonize('standard_mouse.ini')
+    filename = 'standard_mouse.ini'
+    canonize(filename)
     cfg = INIConfig(open('canonic.ini'))
     cfg.Application.GestureDown = 'New browser window'
     print >>open('canonic-res.ini', 'wt'), cfg
-    decanonize('standard_mouse-res.ini')
+    decanonize(filename)
 
 def process_keyboard():
-    canonize('standard_keyboard.ini')
+    filename = 'standard_keyboard.ini'
+    canonize(filename)
     cfg = INIConfig(open('canonic.ini'))
     cfg.Application['t ctrl'] = 'Add to bookmarks'
     cfg.Application['PageUp ctrl'] = 'Switch to previous page'
     cfg.Application['PageDown ctrl'] = 'Switch to next page'
     print >>open('canonic-res.ini', 'wt'), cfg
-    decanonize('standard_keyboard-res.ini')
+    decanonize(filename)
+
+def process_toolbar():
+    filename = 'standard_toolbar.ini'
+    canonize(filename)
+    cfg = INIConfig(open('canonic.ini'), optionxformvalue=None)
+    
+    # ____ hotlist ____
+    cfg['Hotlist.alignment'].Collapse = 1
+    s1 = cfg['Bookmarks Panel Toolbar.content']
+    s2 = deepcopy(s1)
+    for v in s1:
+        del s1[v]
+    i=0
+    for v in s2:
+        s1[v] = s2[v]
+        if i==0:
+            s1['Button, -1759909084'] = 'New folder'
+        i = i+1 
+    
+    # ____ address bar ____
+    s1 = cfg['Document Toolbar.content']
+    del s1['Button, S_WAND_TOOLBAR_BUTTON_TEXT']  # wand combined with fast forward
+    s2 = deepcopy(s1)
+    for v in s1:
+        del s1[v]
+    s1['Button, 1409512585'] = '"Rewind + Show popup menu, "Internal Rewind History""'
+    for v in s2:
+        if not 'HOME_BUTTON' in v and not 'WAND_TOOLBAR_BUTTON' in v:
+            s1[v] = s2[v]
+        if 'Combined Back Forward' in v:
+            s1['Button, -108388079'] = '"Fast Forward + Show popup menu, "Internal Fast Forward History""'
+            s1['Button, -1320335960'] = '"Enable display images > Disable display images, , , -383776252 > Display cached images only, , , 333270751 + Show popup menu, "Images And Style Menu""'
+        if 'STOP_BUTTON' in v:
+            s1['Button, -119414254'] = 'Wand'
+        if v.startswith('Address'):
+            s1['Button, 870715797'] = 'Go'
+    
+    # ____ panels ____
+    s1 = cfg['Hotlist Panel Selector.content']
+    for v in list(s1):
+        del s1[v]
+    for i, v in enumerate(['Bookmarks', 'Widgets', 'Notes', 'Transfers', 'History', 'Links']):
+        s1['%s, %d' % (v, i)] = '"%s"' % KEY
+    
+    print >>open('canonic-res.ini', 'wt'), cfg
+    decanonize(filename)
 
 if __name__ == '__main__':
-#    process_mouse()
+    process_mouse()
     process_keyboard()
+    process_toolbar()
