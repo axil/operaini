@@ -28,7 +28,7 @@ def decanonize(filename):
                 fout.write(re.sub(' = "%s"$' % KEY, '', line))
 
 def process_mouse():
-    filename = 'standard_mouse.ini'
+    filename = 'ui/standard_mouse.ini'
     canonize(filename)
     cfg = INIConfig(open('canonic.ini'))
     cfg.Application.GestureDown = 'New browser window'
@@ -36,7 +36,7 @@ def process_mouse():
     decanonize(filename)
 
 def process_keyboard():
-    filename = 'standard_keyboard.ini'
+    filename = 'ui/standard_keyboard.ini'
     canonize(filename)
     cfg = INIConfig(open('canonic.ini'))
     cfg.Application['t ctrl'] = 'Add to bookmarks'
@@ -46,7 +46,7 @@ def process_keyboard():
     decanonize(filename)
 
 def process_toolbar():
-    filename = 'standard_toolbar.ini'
+    filename = 'ui/standard_toolbar.ini'
     canonize(filename)
     cfg = INIConfig(open('canonic.ini'), optionxformvalue=None)
     
@@ -90,8 +90,19 @@ def process_toolbar():
     
     print >>open('canonic-res.ini', 'wt'), cfg
     decanonize(filename)
+    
+def process_prefs():
+    filename = 'operaprefs_default.ini'
+    cfg_from = INIConfig(open('myprefs.ini'), optionxformvalue=None)
+    cfg_to = INIConfig(open(filename), optionxformvalue=None)
+    for sect in cfg_from:
+        for key in cfg_from[sect]:
+            cfg_to[sect][key]=cfg_from[sect][key]
+    os.rename(filename, filename+'.bak')
+    print >>open(filename,'wt'), cfg_to
 
 if __name__ == '__main__':
-    process_mouse()
-    process_keyboard()
-    process_toolbar()
+#    process_mouse()
+#    process_keyboard()
+#    process_toolbar()
+    process_prefs()
