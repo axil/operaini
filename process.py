@@ -94,12 +94,16 @@ def process_toolbar():
 def process_prefs():
     filename = 'operaprefs_default.ini'
     cfg_from = INIConfig(open('myprefs.ini'), optionxformvalue=None)
-    cfg_to = INIConfig(open(filename), optionxformvalue=None)
-    for sect in cfg_from:
-        for key in cfg_from[sect]:
-            cfg_to[sect][key]=cfg_from[sect][key]
+    with open(filename) as fin: 
+        header = fin.readline()
+        cfg_to = INIConfig(fin, optionxformvalue=None)
+        for sect in cfg_from:
+            for key in cfg_from[sect]:
+                cfg_to[sect][key]=cfg_from[sect][key]
     os.rename(filename, filename+'.bak')
-    print >>open(filename,'wt'), cfg_to
+    with open(filename,'wt') as fout:
+        fout.write(header)
+        print >>fout, cfg_to
 
 if __name__ == '__main__':
 #    process_mouse()
