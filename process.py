@@ -91,18 +91,20 @@ def process_toolbar():
     print >>open('canonic-res.ini', 'wt'), cfg
     decanonize(filename)
     
-def process_prefs():
+def process_prefs(use_header=0):
     filename = 'operaprefs_default.ini'
     cfg_from = INIConfig(open('myprefs.ini'), optionxformvalue=None)
     with open(filename) as fin: 
-        header = fin.readline()
+        if use_header:
+            header = fin.readline()
         cfg_to = INIConfig(fin, optionxformvalue=None)
         for sect in cfg_from:
             for key in cfg_from[sect]:
                 cfg_to[sect][key]=cfg_from[sect][key]
     os.rename(filename, filename+'.bak')
     with open(filename,'wt') as fout:
-        fout.write(header)
+        if use_header:
+            fout.write(header)
         print >>fout, cfg_to
 
 if __name__ == '__main__':
