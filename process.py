@@ -42,6 +42,12 @@ def process_keyboard():
     cfg.Application['t ctrl'] = 'Add to bookmarks'
     cfg.Application['PageUp ctrl'] = 'Switch to previous page'
     cfg.Application['PageDown ctrl'] = 'Switch to next page'
+#    cfg['Browser Widget']['PageUp shift'] = 'Page left'
+#    cfg['Browser Widget']['PageDown shift'] = 'Page right'
+#    del cfg['Browser Widget']['PageUp ctrl']
+#    del cfg['Browser Widget']['PageDown ctrl']
+    cfg['Browser Widget']._lines[-1].find('PageUp ctrl').name='PageUp shift'
+    cfg['Browser Widget']._lines[-1].find('PageDown ctrl').name='PageDown shift'
     print >>open('canonic-res.ini', 'wt'), cfg
     decanonize(filename)
 
@@ -107,6 +113,6 @@ def process_prefs():
 
 if __name__ == '__main__':
 #    process_mouse()
-#    process_keyboard()
+    process_keyboard()
 #    process_toolbar()
-    process_prefs()
+#    process_prefs()
