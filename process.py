@@ -1,8 +1,10 @@
 import re, os
 from iniparse import INIConfig
 from copy import deepcopy
+from optparse import OptionParser
 
 KEY = '____________________________'
+DRY_RUN = True
 
 def canonize(filename):
     FIN = filename
@@ -20,12 +22,15 @@ def canonize(filename):
                 fout.write(line.strip() + ' = "'+ KEY +'"\n')
 
 def decanonize(filename):
-    os.rename(filename, filename+'.bak')
-    with open('canonic-res.ini') as fin:
-        with open(filename, 'wt') as fout:
-            fin.readline()
-            for line in fin:
-                fout.write(re.sub(' = "%s"$' % KEY, '', line))
+    if not DRY_RUN:
+        if os.path.exists(filename+'.bak'):
+            os.unlink(filename+'.bak')
+        os.rename(filename, filename+'.bak')
+        with open('canonic-res.ini') as fin:
+            with open(filename, 'wt') as fout:
+                fin.readline()
+                for line in fin:
+                    fout.write(re.sub(' = "%s"$' % KEY, '', line))
 
 def process_mouse():
     filename = 'ui/standard_mouse.ini'
@@ -35,13 +40,51 @@ def process_mouse():
     print >>open('canonic-res.ini', 'wt'), cfg
     decanonize(filename)
 
+def set_key(cfg, section, key, value):
+    try:
+        curval = eval(section)[key]
+        if value == curval:
+            print "= %s['%s'] = '%s'" % (section, key, value)
+        else:
+            if type(curval) != str:
+                print "+ %s['%s'] = '%s'" % (section, key, value)
+            else:
+                print "> %s['%s']: '%s' -> '%s'" % (section, key, curval, value)
+            eval(section)[key] = value
+    except:
+        print "! %s['%s']: %s" % (section, key, '____ERROR____')
+
+def set_attr(cfg, section, attr, value):
+    try:
+        curval = getattr(eval(section), attr)
+        if value == curval:
+            print "= %s.'%s' = '%s'" % (section, attr, value)
+        else:
+            print "* %s.'%s': '%s' -> '%s'" % (section, attr, curval, value)
+            setattr(eval(section), attr, value)
+    except:
+        print "! %s.'%s': %s" % (section, attr, '____ERROR____')
+
 def process_keyboard():
     filename = 'ui/standard_keyboard.ini'
     canonize(filename)
     cfg = INIConfig(open('canonic.ini'))
-    cfg.Application['t ctrl'] = 'Add to bookmarks'
-    cfg.Application['PageUp ctrl'] = 'Switch to previous page'
-    cfg.Application['PageDown ctrl'] = 'Switch to next page'
+#    cfg.Application['t ctrl'] = 'Add to bookmarks'
+#    cfg.Application['PageUp ctrl'] = 'Switch to previous page'
+#    cfg.Application['PageDown ctrl'] = 'Switch to next page'
+    set_key(cfg, 'cfg.Application', 't ctrl', 'Add to bookmarks')
+    set_key(cfg, 'cfg.Application', 'PageUp ctrl', 'Switch to previous page')
+    set_key(cfg, 'cfg.Application', 'PageDown ctrl', 'Switch to next page')
+#    cfg['Browser Widget']['PageUp shift'] = 'Page left'
+#    cfg['Browser Widget']['PageDown shift'] = 'Page right'
+#    del cfg['Browser Widget']['PageUp ctrl']
+#    del cfg['Browser Widget']['PageDown ctrl']
+
+#    cfg['Browser Widget']._lines[-1].find('PageUp ctrl').name='PageUp shift'
+#    cfg['Browser Widget']._lines[-1].find('PageDown ctrl').name='PageDown shift'
+    set_attr(cfg, "cfg['Browser Widget']._lines[-1].find('PageUp ctrl')", 'name', 'PageUp shift')
+    set_attr(cfg, "cfg['Browser Widget']._lines[-1].find('PageDown ctrl')", 'name', 'PageDown shift')
+
     print >>open('canonic-res.ini', 'wt'), cfg
     decanonize(filename)
 
@@ -101,6 +144,8 @@ def process_prefs(use_header=0):
         for sect in cfg_from:
             for key in cfg_from[sect]:
                 cfg_to[sect][key]=cfg_from[sect][key]
+    if os.path.exists(filename+'.bak'):
+        os.unlink(filename+'.bak')
     os.rename(filename, filename+'.bak')
     with open(filename,'wt') as fout:
         if use_header:
@@ -108,7 +153,14 @@ def process_prefs(use_header=0):
         print >>fout, cfg_to
 
 if __name__ == '__main__':
+    parser = OptionParser()
+    parser.add_option('-a', '--apply', dest='apply', action='store_true', default=False, help='apply changes')
+    options, args = parser.parse_args()
+    global DRY_RUN
+    DRY_RUN = not options.apply
+    if DRY_RUN:
+        print '____Dry run____'
 #    process_mouse()
-#    process_keyboard()
+    process_keyboard()
 #    process_toolbar()
-    process_prefs()
+#    process_prefs()
