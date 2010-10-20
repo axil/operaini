@@ -36,15 +36,15 @@ def set_key(cfg, section, key, value):
     try:
         curval = cfg[section][key]
         if value == curval:
-            print "= %s['%s'] = '%s'" % (section, key, value)
+            print "= setting %s['%s'] = '%s'" % (section, key, value)
         else:
             if type(curval) != str:
-                print "+ %s['%s'] = '%s'" % (section, key, value)
+                print "+ setting %s['%s'] = '%s'" % (section, key, value)
             else:
-                print "> %s['%s']: '%s' -> '%s'" % (section, key, curval, value)
+                print "> setting %s['%s']: '%s' -> '%s'" % (section, key, curval, value)
             cfg[section][key] = value
     except:
-        print "! %s['%s']: %s" % (section, key, '____error____')
+        print "! setting %s['%s']: %s" % (section, key, '____error____')
 
 def rename_key(cfg, section, key, newkey):
     curval = cfg[section][key]
@@ -56,7 +56,16 @@ def rename_key(cfg, section, key, newkey):
     else:
         cfg[section]._lines[-1].find('PageUp ctrl').name = 'PageUp shift'
         status, result = '>', 'ok'
-    print "%s %s['%s'] -> %s['%s']: %s" % (status, section, key, section, newkey, result)
+    print "%s renaming %s['%s'] -> %s['%s']: %s" % (status, section, key, section, newkey, result)
+
+def remove_key(cfg, section, key):
+    curval = cfg[section][key]
+    if type(curval) != str:
+        status, result = '!', '____not found____'
+    else:
+        del curval
+        status, result = '>', 'ok'
+    print "%s removing %s['%s']: %s" % (status, section, key, result)
 
 def process_mouse():
     filename = 'ui/standard_mouse.ini'
@@ -109,7 +118,7 @@ def process_toolbar():
     
     # ____ address bar ____
     s1 = cfg['Document Toolbar.content']
-    del s1['Button, S_WAND_TOOLBAR_BUTTON_TEXT']  # wand combined with fast forward
+    remove_key(cfg, 'Document Toolbar.content', 'Button, S_WAND_TOOLBAR_BUTTON_TEXT')  # wand combined with fast forward
     s2 = deepcopy(s1)
     for v in s1:
         del s1[v]
@@ -124,6 +133,22 @@ def process_toolbar():
             s1['Button, -119414254'] = 'Wand'
         if v.startswith('Address'):
             s1['Button, 870715797'] = 'Go'
+    
+    # ____ progress bar ____
+    s1 = cfg['Progress Toolbar.content']
+    remove_key(cfg, 'Progress Toolbar.content', 'Button, S_WAND_TOOLBAR_BUTTON_TEXT')  # wand combined with fast forward
+    s2 = deepcopy(s1)
+    for v in s1:
+        del s1[v]
+    s1['Button, 1409512585'] = '"Rewind + Show popup menu, "Internal Rewind History""'
+    for v in s2:
+        if not 'HOME_BUTTON' in v and not 'WAND_TOOLBAR_BUTTON' in v:
+            s1[v] = s2[v]
+        if 'Combined Back Forward' in v:
+            s1['Button, -108388079'] = '"Fast Forward + Show popup menu, "Internal Fast Forward History""'
+            s1['Button, -1320335960'] = '"Enable display images > Disable display images, , , -383776252 > Display cached images only, , , 333270751 + Show popup menu, "Images And Style Menu""'
+        if 'STOP_BUTTON' in v:
+            s1['Button, -119414254'] = 'Wand'
     
     # ____ panels ____
     s1 = cfg['Hotlist Panel Selector.content']
@@ -145,13 +170,14 @@ def process_prefs(use_header=0):
         for sect in cfg_from:
             for key in cfg_from[sect]:
                 cfg_to[sect][key]=cfg_from[sect][key]
-    if os.path.exists(filename+'.bak'):
-        os.unlink(filename+'.bak')
-    os.rename(filename, filename+'.bak')
-    with open(filename,'wt') as fout:
-        if use_header:
-            fout.write(header)
-        print >>fout, cfg_to
+    if not DRY_RUN:
+        if os.path.exists(filename+'.bak'):
+            os.unlink(filename+'.bak')
+        os.rename(filename, filename+'.bak')
+        with open(filename,'wt') as fout:
+            if use_header:
+                fout.write(header)
+            print >>fout, cfg_to
 
 def parse_options():
     global DRY_RUN
@@ -165,7 +191,7 @@ def parse_options():
 if __name__ == '__main__':
     parse_options()
 
-    process_mouse()
+#    process_mouse()
 #    process_keyboard()
-#    process_toolbar()
+    process_toolbar()
 #    process_prefs()
