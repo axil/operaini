@@ -32,17 +32,9 @@ def decanonize(filename):
                 for line in fin:
                     fout.write(re.sub(' = "%s"$' % KEY, '', line))
 
-def process_mouse():
-    filename = 'ui/standard_mouse.ini'
-    canonize(filename)
-    cfg = INIConfig(open('canonic.ini'))
-    cfg.Application.GestureDown = 'New browser window'
-    print >>open('canonic-res.ini', 'wt'), cfg
-    decanonize(filename)
-
 def set_key(cfg, section, key, value):
     try:
-        curval = eval(section)[key]
+        curval = cfg[section][key]
         if value == curval:
             print "= %s['%s'] = '%s'" % (section, key, value)
         else:
@@ -50,20 +42,29 @@ def set_key(cfg, section, key, value):
                 print "+ %s['%s'] = '%s'" % (section, key, value)
             else:
                 print "> %s['%s']: '%s' -> '%s'" % (section, key, curval, value)
-            eval(section)[key] = value
+            cfg[section][key] = value
     except:
-        print "! %s['%s']: %s" % (section, key, '____ERROR____')
+        print "! %s['%s']: %s" % (section, key, '____error____')
 
-def set_attr(cfg, section, attr, value):
-    try:
-        curval = getattr(eval(section), attr)
-        if value == curval:
-            print "= %s.'%s' = '%s'" % (section, attr, value)
+def rename_key(cfg, section, key, newkey):
+    curval = cfg[section][key]
+    if type(curval) != str:
+        if type(cfg[section][newkey]) == str:
+            status, result = '=', '____already renamed____'
         else:
-            print "* %s.'%s': '%s' -> '%s'" % (section, attr, curval, value)
-            setattr(eval(section), attr, value)
-    except:
-        print "! %s.'%s': %s" % (section, attr, '____ERROR____')
+            status, result = '!', '____not found____'
+    else:
+        cfg[section]._lines[-1].find('PageUp ctrl').name = 'PageUp shift'
+        status, result = '>', 'ok'
+    print "%s %s['%s'] -> %s['%s']: %s" % (status, section, key, section, newkey, result)
+
+def process_mouse():
+    filename = 'ui/standard_mouse.ini'
+    canonize(filename)
+    cfg = INIConfig(open('canonic.ini'))
+    set_key(cfg, 'Application', 'GestureDown', 'New browser window')
+    print >>open('canonic-res.ini', 'wt'), cfg
+    decanonize(filename)
 
 def process_keyboard():
     filename = 'ui/standard_keyboard.ini'
@@ -72,9 +73,9 @@ def process_keyboard():
 #    cfg.Application['t ctrl'] = 'Add to bookmarks'
 #    cfg.Application['PageUp ctrl'] = 'Switch to previous page'
 #    cfg.Application['PageDown ctrl'] = 'Switch to next page'
-    set_key(cfg, 'cfg.Application', 't ctrl', 'Add to bookmarks')
-    set_key(cfg, 'cfg.Application', 'PageUp ctrl', 'Switch to previous page')
-    set_key(cfg, 'cfg.Application', 'PageDown ctrl', 'Switch to next page')
+    set_key(cfg, 'Application', 't ctrl', 'Add to bookmarks')
+    set_key(cfg, 'Application', 'PageUp ctrl', 'Switch to previous page')
+    set_key(cfg, 'Application', 'PageDown ctrl', 'Switch to next page')
 #    cfg['Browser Widget']['PageUp shift'] = 'Page left'
 #    cfg['Browser Widget']['PageDown shift'] = 'Page right'
 #    del cfg['Browser Widget']['PageUp ctrl']
@@ -82,8 +83,8 @@ def process_keyboard():
 
 #    cfg['Browser Widget']._lines[-1].find('PageUp ctrl').name='PageUp shift'
 #    cfg['Browser Widget']._lines[-1].find('PageDown ctrl').name='PageDown shift'
-    set_attr(cfg, "cfg['Browser Widget']._lines[-1].find('PageUp ctrl')", 'name', 'PageUp shift')
-    set_attr(cfg, "cfg['Browser Widget']._lines[-1].find('PageDown ctrl')", 'name', 'PageDown shift')
+    rename_key(cfg, 'Browser Widget', 'PageUp ctrl', 'PageUp shift')
+    rename_key(cfg, 'Browser Widget', 'PageDown ctrl', 'PageDown shift')
 
     print >>open('canonic-res.ini', 'wt'), cfg
     decanonize(filename)
@@ -152,15 +153,19 @@ def process_prefs(use_header=0):
             fout.write(header)
         print >>fout, cfg_to
 
-if __name__ == '__main__':
+def parse_options():
+    global DRY_RUN
     parser = OptionParser()
     parser.add_option('-a', '--apply', dest='apply', action='store_true', default=False, help='apply changes')
     options, args = parser.parse_args()
-    global DRY_RUN
     DRY_RUN = not options.apply
     if DRY_RUN:
         print '____Dry run____'
-#    process_mouse()
-    process_keyboard()
+
+if __name__ == '__main__':
+    parse_options()
+
+    process_mouse()
+#    process_keyboard()
 #    process_toolbar()
 #    process_prefs()
