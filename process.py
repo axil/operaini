@@ -99,12 +99,20 @@ def process_keyboard():
     decanonize(filename)
 
 def process_toolbar():
+    def add_button(desc, key, value):   # s1, s2 passed implicitly
+        if type(s2[key])!=str:
+            s1[key]=value
+            print '>',
+        else:
+            print '=',
+        print desc
+
     filename = 'ui/standard_toolbar.ini'
     canonize(filename)
     cfg = INIConfig(open('canonic.ini'), optionxformvalue=None)
     
     # ____ hotlist ____
-    cfg['Hotlist.alignment'].Collapse = 1
+    set_key(cfg, 'Hotlist.alignment', 'Collapse', '1')
     s1 = cfg['Bookmarks Panel Toolbar.content']
     s2 = deepcopy(s1)
     for v in s1:
@@ -113,42 +121,28 @@ def process_toolbar():
     for v in s2:
         s1[v] = s2[v]
         if i==0:
-            s1['Button, -1759909084'] = 'New folder'
+            add_button('new folder', 'Button, -1759909084', 'New folder')
         i = i+1 
     
-    # ____ address bar ____
-    s1 = cfg['Document Toolbar.content']
-    remove_key(cfg, 'Document Toolbar.content', 'Button, S_WAND_TOOLBAR_BUTTON_TEXT')  # wand combined with fast forward
-    s2 = deepcopy(s1)
-    for v in s1:
-        del s1[v]
-    s1['Button, 1409512585'] = '"Rewind + Show popup menu, "Internal Rewind History""'
-    for v in s2:
-        if not 'HOME_BUTTON' in v and not 'WAND_TOOLBAR_BUTTON' in v:
-            s1[v] = s2[v]
-        if 'Combined Back Forward' in v:
-            s1['Button, -108388079'] = '"Fast Forward + Show popup menu, "Internal Fast Forward History""'
-            s1['Button, -1320335960'] = '"Enable display images > Disable display images, , , -383776252 > Display cached images only, , , 333270751 + Show popup menu, "Images And Style Menu""'
-        if 'STOP_BUTTON' in v:
-            s1['Button, -119414254'] = 'Wand'
-        if v.startswith('Address'):
-            s1['Button, 870715797'] = 'Go'
-    
-    # ____ progress bar ____
-    s1 = cfg['Progress Toolbar.content']
-    remove_key(cfg, 'Progress Toolbar.content', 'Button, S_WAND_TOOLBAR_BUTTON_TEXT')  # wand combined with fast forward
-    s2 = deepcopy(s1)
-    for v in s1:
-        del s1[v]
-    s1['Button, 1409512585'] = '"Rewind + Show popup menu, "Internal Rewind History""'
-    for v in s2:
-        if not 'HOME_BUTTON' in v and not 'WAND_TOOLBAR_BUTTON' in v:
-            s1[v] = s2[v]
-        if 'Combined Back Forward' in v:
-            s1['Button, -108388079'] = '"Fast Forward + Show popup menu, "Internal Fast Forward History""'
-            s1['Button, -1320335960'] = '"Enable display images > Disable display images, , , -383776252 > Display cached images only, , , 333270751 + Show popup menu, "Images And Style Menu""'
-        if 'STOP_BUTTON' in v:
-            s1['Button, -119414254'] = 'Wand'
+    # ____ address bar, progress bar ____
+    for section in 'Document Toolbar.content', 'Progress Toolbar.content':
+        s1 = cfg[section]
+        remove_key(cfg, section, 'Button, S_WAND_TOOLBAR_BUTTON_TEXT')  # wand combined with fast forward
+        s2 = deepcopy(s1)
+        for v in s1:
+            del s1[v]
+        add_button('rewind', 'Button, 1409512585', '"Rewind + Show popup menu, "Internal Rewind History""')
+        for v in s2:
+            if not 'HOME_BUTTON' in v and not 'WAND_TOOLBAR_BUTTON' in v:
+                s1[v] = s2[v]
+            if 'Combined Back Forward' in v:
+                add_button('fast forward', 'Button, -108388079', '"Fast Forward + Show popup menu, "Internal Fast Forward History""')
+                add_button('images', 'Button, -1320335960', '"Enable display images > Disable display images, , , '
+                        '-383776252 > Display cached images only, , , 333270751 + Show popup menu, "Images And Style Menu""')
+            if 'STOP_BUTTON' in v:
+                add_button('wand', 'Button, -119414254', 'Wand')
+            if v.startswith('Address'):         # address bar only
+                add_button('go', 'Button, 870715797', 'Go')
     
     # ____ panels ____
     s1 = cfg['Hotlist Panel Selector.content']
