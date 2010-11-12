@@ -54,7 +54,7 @@ def rename_key(cfg, section, key, newkey):
         else:
             status, result = '!', '____not found____'
     else:
-        cfg[section]._lines[-1].find('PageUp ctrl').name = 'PageUp shift'
+        cfg[section]._lines[-1].find(key).name = newkey
         status, result = '>', 'ok'
     print "%s renaming %s['%s'] -> %s['%s']: %s" % (status, section, key, section, newkey, result)
 
@@ -154,13 +154,21 @@ def process_toolbar():
     print >>open('canonic-res.ini', 'wt'), cfg
     decanonize(filename)
     
-def process_prefs(use_header=0):
+def process_prefs(use_header=None):
     filename = 'operaprefs_default.ini'
     cfg_from = INIConfig(open('myprefs.ini'), optionxformvalue=None)
+    header = None
     with open(filename) as fin: 
-        if use_header:
-            header = fin.readline()
-        cfg_to = INIConfig(fin, optionxformvalue=None)
+        if use_header is None:
+            try:
+                cfg_to = INIConfig(fin, optionxformvalue=None)
+            except:
+                header = fin.readline()
+                cfg_to = INIConfig(fin, optionxformvalue=None)
+        else:
+            if use_header:
+                header = fin.readline()
+            cfg_to = INIConfig(fin, optionxformvalue=None)
         for sect in cfg_from:
             for key in cfg_from[sect]:
                 cfg_to[sect][key]=cfg_from[sect][key]
@@ -169,7 +177,7 @@ def process_prefs(use_header=0):
             os.unlink(filename+'.bak')
         os.rename(filename, filename+'.bak')
         with open(filename,'wt') as fout:
-            if use_header:
+            if header is not None:
                 fout.write(header)
             print >>fout, cfg_to
 
@@ -185,7 +193,7 @@ def parse_options():
 if __name__ == '__main__':
     parse_options()
 
-#    process_mouse()
-#    process_keyboard()
+    process_mouse()
+    process_keyboard()
     process_toolbar()
-#    process_prefs()
+    process_prefs()
