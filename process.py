@@ -141,7 +141,7 @@ def process_toolbar():
                         '-383776252 > Display cached images only, , , 333270751 + Show popup menu, "Images And Style Menu""')
             if 'STOP_BUTTON' in v:
                 add_button('wand', 'Button, -119414254', 'Wand')
-            if v.startswith('Address'):         # address bar only
+            if v.startswith('Address') or v.startswith('NamedAddress'):         # address bar only
                 add_button('go', 'Button, 870715797', 'Go')
     
     # ____ panels ____
@@ -193,7 +193,7 @@ def parse_options():
 if __name__ == '__main__':
     parse_options()
 
-    process_mouse()
-    process_keyboard()
+#    process_mouse()
+#    process_keyboard()
     process_toolbar()
-    process_prefs()
+#    process_prefs()
