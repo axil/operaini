@@ -190,10 +190,23 @@ def parse_options():
     if DRY_RUN:
         print '____Dry run____'
 
+def process_search():
+    from filecmp import cmp
+    from shutil import copyfile
+    f1, f2 = 'search.ini', 'locale/en/search.ini'
+    if cmp(f1, f2):
+        print '= search.ini is installed already'
+    else:
+        print '> search.ini has been installed'
+        if not DRY_RUN:
+            copyfile(f2, f2 + '~')
+            copyfile(f1, f2)
+
 if __name__ == '__main__':
     parse_options()
 
 #    process_mouse()
 #    process_keyboard()
-    process_toolbar()
+#    process_toolbar()
 #    process_prefs()
+    process_search()
