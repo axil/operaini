@@ -190,17 +190,34 @@ def parse_options():
     if DRY_RUN:
         print '____Dry run____'
 
-def process_search():
-    from filecmp import cmp
+def install_file(f1, f2):
     from shutil import copyfile
-    f1, f2 = 'search.ini', 'locale/en/search.ini'
-    if cmp(f1, f2):
-        print '= search.ini is installed already'
+    from filecmp import cmp
+    if os.path.exists(f2):
+        if cmp(f1, f2):
+            print '= %s is installed already' % f1
+        else:
+            print '> %s has been updated' % f1
+            if not DRY_RUN:
+                copyfile(f2, f2 + '~')
+                copyfile(f1, f2)
     else:
-        print '> search.ini has been installed'
+        print '> %s has been installed' % f1
         if not DRY_RUN:
-            copyfile(f2, f2 + '~')
             copyfile(f1, f2)
+
+
+def process_search():
+    f1, f2 = 'search.ini', 'locale/en/search.ini'
+    install_file(f1, f2)
+
+def process_urlfilter():
+    from os import environ
+    from os import getcwd
+    from os.path import basename
+    f1 = 'urlfilter.ini'
+    f2 = os.sep.join((environ['APPDATA'], 'Opera', basename(getcwd()), f1))
+    install_file(f1, f2)
 
 if __name__ == '__main__':
     parse_options()
@@ -209,4 +226,5 @@ if __name__ == '__main__':
 #    process_keyboard()
 #    process_toolbar()
 #    process_prefs()
-    process_search()
+#    process_search()
+    process_urlfilter()
