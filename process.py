@@ -31,6 +31,8 @@ def decanonize(filename):
                 fin.readline()
                 for line in fin:
                     fout.write(re.sub(' = "%s"$' % KEY, '', line))
+        os.unlink('canonic-res.ini')
+    os.unlink('canonic.ini')
 
 def set_key(cfg, section, key, value):
     try:
@@ -190,26 +192,32 @@ def parse_options():
     if DRY_RUN:
         print '____Dry run____'
 
-def install_file(f1, f2):
+def install_file(f, d):
     from shutil import copyfile
     from filecmp import cmp
+    if not os.path.exists(d):
+        print '! error installing %s: dir %s does not exist' % (f, d)
+        return
+    f1 = f
+    f2 = os.sep.join((f, d))
     if os.path.exists(f2):
         if cmp(f1, f2):
-            print '= %s is installed already' % f1
+            print '= %s is installed already to %s' % (f, d)
         else:
-            print '> %s has been updated' % f1
+            print '> %s has been updated in %s' % (f, d)
             if not DRY_RUN:
                 copyfile(f2, f2 + '~')
                 copyfile(f1, f2)
     else:
-        print '> %s has been installed' % f1
+        print '> %s has been installed into %s' % (f, d)
         if not DRY_RUN:
             copyfile(f1, f2)
 
 
 def process_search():
-    f1, f2 = 'search.ini', 'locale/en/search.ini'
-    install_file(f1, f2)
+    f1, f2 = 'search.ini', 'locale/%s'
+    for locale in ('en', 'ru'):
+        install_file(f1, f2 % locale)
 
 def process_urlfilter():
     from os import environ
@@ -222,9 +230,9 @@ def process_urlfilter():
 if __name__ == '__main__':
     parse_options()
 
-#    process_mouse()
-#    process_keyboard()
-#    process_toolbar()
-#    process_prefs()
-#    process_search()
+    process_mouse()
+    process_keyboard()
+    process_toolbar()
+    process_prefs()
+    process_search()
     process_urlfilter()

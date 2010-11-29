@@ -1,0 +1,20 @@
+Opera Hotlist version 2.0
+Options: encoding = utf8, version=3
+
+#URL
+	ID=1
+	NAME=http://localhost:8000
+	CREATED=1290510091
+	SHORT NAME=8000
+	UNIQUEID=EB269744A3EBB2409DA865C529865887
+
+#URL
+	ID=2
+	NAME=Django | Django documentation | Django documentation
+	URL=http://docs.djangoproject.com/en/1.2/
+	CREATED=1290693046
+	DESCRIPTION=Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.
+	SHORT NAME=dh
+	ACTIVE=YES
+	UNIQUEID=AF817460768F1E4985D05470B873DCAA
+
