@@ -199,33 +199,34 @@ def install_file(f, d):
         print '! error installing %s: dir %s does not exist' % (f, d)
         return
     f1 = f
-    f2 = os.sep.join((f, d))
+    f2 = os.sep.join((d, f))
+    import pdb; pdb.set_trace()
     if os.path.exists(f2):
         if cmp(f1, f2):
-            print '= %s is installed already to %s' % (f, d)
+            print '= %s is already installed to %s' % (f, d)
         else:
-            print '> %s has been updated in %s' % (f, d)
             if not DRY_RUN:
                 copyfile(f2, f2 + '~')
                 copyfile(f1, f2)
+            print '> %s has been updated in %s' % (f, d)
     else:
-        print '> %s has been installed into %s' % (f, d)
         if not DRY_RUN:
             copyfile(f1, f2)
+        print '> %s has been installed into %s' % (f, d)
 
 
 def process_search():
-    f1, f2 = 'search.ini', 'locale/%s'
+    f, d = 'search.ini', os.sep.join(('locale', '%s'))
     for locale in ('en', 'ru'):
-        install_file(f1, f2 % locale)
+        install_file(f, d)
 
 def process_urlfilter():
     from os import environ
     from os import getcwd
     from os.path import basename
-    f1 = 'urlfilter.ini'
-    f2 = os.sep.join((environ['APPDATA'], 'Opera', basename(getcwd()), f1))
-    install_file(f1, f2)
+    f = 'urlfilter.ini'
+    d = os.sep.join((environ['APPDATA'], 'Opera', basename(getcwd())))
+    install_file(f, d)
 
 if __name__ == '__main__':
     parse_options()
