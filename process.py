@@ -200,7 +200,6 @@ def install_file(f, d):
         return
     f1 = f
     f2 = os.sep.join((d, f))
-    import pdb; pdb.set_trace()
     if os.path.exists(f2):
         if cmp(f1, f2):
             print '= %s is already installed to %s' % (f, d)
