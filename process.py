@@ -1,4 +1,6 @@
 import re, os
+from os import environ, getcwd
+from os.path import basename
 from iniparse import INIConfig
 from copy import deepcopy
 from optparse import OptionParser
@@ -217,12 +219,16 @@ def install_file(f, d):
 def process_search():
     f, d = 'search.ini', os.sep.join(('locale', '%s'))
     for locale in ('en', 'ru'):
-        install_file(f, d)
+        install_file(f, d % locale)
+    install_file(f, 'custom/locale/en')
+    d = os.sep.join((
+        environ['HOMEDRIVE']+environ['HOMEPATH'], 'Local Settings', 
+        'Application Data', 'Opera', basename(getcwd()),
+        'custom', 'locale', 'en',
+        ))
+    install_file(f, d)
 
 def process_urlfilter():
-    from os import environ
-    from os import getcwd
-    from os.path import basename
     f = 'urlfilter.ini'
     d = os.sep.join((environ['APPDATA'], 'Opera', basename(getcwd())))
     install_file(f, d)
