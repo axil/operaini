@@ -221,10 +221,16 @@ def process_search():
     for locale in ('en', 'ru'):
         install_file(f, d % locale)
     install_file(f, 'custom/locale/en')
+    install_file(f, 'defaults')
     d = os.sep.join((
         environ['HOMEDRIVE']+environ['HOMEPATH'], 'Local Settings', 
         'Application Data', 'Opera', basename(getcwd()),
         'custom', 'locale', 'en',
+        ))
+    install_file(f, d)
+    d = os.sep.join((
+        environ['HOMEDRIVE']+environ['HOMEPATH'],
+        'AppData', 'Roaming', 'Opera', basename(getcwd())
         ))
     install_file(f, d)
 
