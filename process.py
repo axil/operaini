@@ -197,42 +197,47 @@ def parse_options():
 def install_file(f, d):
     from shutil import copyfile
     from filecmp import cmp
-    if not os.path.exists(d):
-        print '! error installing %s: dir %s does not exist' % (f, d)
-        return
-    f1 = f
-    f2 = os.sep.join((d, f))
-    if os.path.exists(f2):
-        if cmp(f1, f2):
-            print '= %s is already installed to %s' % (f, d)
+    if type(d) in (tuple, list):
+        dd = d
+    else:
+        dd = d,
+    for d in dd:
+        if not os.path.exists(d):
+            print '! error installing %s: dir %s does not exist' % (f, d)
+            return
+        f1 = f
+        f2 = os.sep.join((d, f))
+        if os.path.exists(f2):
+            if cmp(f1, f2):
+                print '= %s is already installed to %s' % (f, d)
+            else:
+                if not DRY_RUN:
+                    copyfile(f2, f2 + '~')
+                    copyfile(f1, f2)
+                print '> %s has been updated in %s' % (f, d)
         else:
             if not DRY_RUN:
-                copyfile(f2, f2 + '~')
                 copyfile(f1, f2)
-            print '> %s has been updated in %s' % (f, d)
-    else:
-        if not DRY_RUN:
-            copyfile(f1, f2)
-        print '> %s has been installed into %s' % (f, d)
-
+            print '> %s has been installed into %s' % (f, d)
 
 def process_search():
-    f, d = 'search.ini', os.sep.join(('locale', '%s'))
-    for locale in ('en', 'ru'):
-        install_file(f, d % locale)
-    install_file(f, 'custom/locale/en')
-    install_file(f, 'defaults')
-    d = os.sep.join((
-        environ['HOMEDRIVE']+environ['HOMEPATH'], 'Local Settings', 
-        'Application Data', 'Opera', basename(getcwd()),
-        'custom', 'locale', 'en',
-        ))
-    install_file(f, d)
-    d = os.sep.join((
-        environ['HOMEDRIVE']+environ['HOMEPATH'],
-        'AppData', 'Roaming', 'Opera', basename(getcwd())
-        ))
-    install_file(f, d)
+    install_file('search.ini', ['locale/%s' % z for z in ('en', 'ru')] + [
+        'custom/locale/en',
+        'defaults',
+        os.sep.join((
+            environ['HOMEDRIVE']+environ['HOMEPATH'], 'Local Settings', 
+            'Application Data', 'Opera', basename(getcwd()),
+            'custom', 'locale', 'en',
+        )),
+        os.sep.join((
+            environ['HOMEDRIVE']+environ['HOMEPATH'],
+            'Application Data', 'Opera', basename(getcwd()),
+        )),
+        os.sep.join((
+            environ['HOMEDRIVE']+environ['HOMEPATH'],
+            'AppData', 'Roaming', 'Opera', basename(getcwd())
+        )),
+    ])
 
 def process_urlfilter():
     f = 'urlfilter.ini'
