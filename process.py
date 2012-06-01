@@ -204,7 +204,7 @@ def install_file(f, d):
     for d in dd:
         if not os.path.exists(d):
             print '! error installing %s: dir %s does not exist' % (f, d)
-            return
+            continue
         f1 = f
         f2 = os.sep.join((d, f))
         if os.path.exists(f2):
